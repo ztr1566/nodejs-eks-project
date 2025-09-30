@@ -1,11 +1,13 @@
 # AWS 2-Tier VPC Infrastructure with Terraform
 
-This project provisions a secure, 2-tier cloud architecture on Amazon Web Services (AWS) using Terraform. The entire infrastructure is defined as code, following a modular design and best practices for reusability and maintainability.
+This project provisions a secure, 2-tier cloud architecture on Amazon Web Services (AWS) using Terraform. The entire infrastructure is defined as code, following a modular design and best practices for Infrastructure as Code (IaC).
+
+This project uses **HashiCorp Vault** to manage sensitive or configurable data, such as the AMI ID, preventing it from being hardcoded in the main configuration.
 
 ---
 ## 🏛️ Architecture
 
-This Terraform configuration deploys the following AWS resources to create a classic web/application-tier setup:
+This Terraform configuration deploys the following AWS resources:
 
 * **A dedicated Virtual Private Cloud (VPC)** to provide an isolated network environment.
 * **Two Subnets:**
@@ -13,11 +15,11 @@ This Terraform configuration deploys the following AWS resources to create a cla
     * A **Private Subnet** for backend services (e.g., application server, database), completely isolated from direct internet access.
 * **Networking Gateways:**
     * An **Internet Gateway** to allow internet traffic to and from the public subnet.
-    * A **NAT Gateway** to allow instances in the private subnet to initiate outbound connections (e.g., for software updates) while remaining unreachable from the external internet.
+    * A **NAT Gateway** to allow instances in the private subnet to initiate outbound connections (e.g., for software updates).
 * **Two EC2 Instances:**
-    * A public-facing web server with Nginx automatically installed and configured via `user_data`.
+    * A public-facing web server with Nginx automatically installed via `user_data`.
     * A private backend server for internal application logic.
-* **Security Groups** to act as virtual firewalls, controlling inbound and outbound traffic for the EC2 instances.
+* **Security Groups** to act as virtual firewalls, controlling inbound and outbound traffic.
 
 
 
@@ -29,59 +31,75 @@ Before you begin, ensure you have the following tools installed and configured:
 
 1.  [**Terraform**](https://developer.hashicorp.com/terraform/downloads) (v1.0 or later).
 2.  [**AWS CLI**](https://aws.amazon.com/cli/) installed and configured with your credentials (`aws configure`).
-3.  An **SSH Key Pair** already created in your AWS account in the target region.
-
----
-
-## 📁 Project Structure
-
-The project is organized into logical modules for better separation of concerns and reusability:
-
-* `modules/vpc`: Creates the VPC.
-* `modules/network`: Creates the subnets, gateways, and route tables.
-* `modules/security`: Creates the security groups.
-* `modules/ec2`: Creates the EC2 instances.
+3.  [**HashiCorp Vault**](https://developer.hashicorp.com/vault/downloads) installed.
+4.  An **SSH Key Pair** already created in your AWS account in the target region.
 
 ---
 
 ## 🚀 How to Deploy
 
-1.  **Clone the Repository:**
+Follow these steps to provision the infrastructure.
+
+### Step 1: Clone the Repository
+```sh
+git clone <your-repository-url>
+cd terraform-aws-project
+```
+
+### Step 2: Start and Configure Vault
+For this project, you can run a local Vault server in development mode.
+
+1.  **Start the Vault Server:**
+    Open a **separate terminal** and run the following command. Keep this terminal open.
     ```sh
-    git clone <your-repository-url>
-    cd terraform-aws-project
+    vault server -dev
     ```
+    Vault will start and print out an **Unseal Key** and a **Root Token**. You will need the **Root Token** for the next step.
 
-2.  **Create a Variables File:**
-    Create a file named `terraform.tfvars` in the root directory. This file will contain your specific configuration values and is ignored by Git to protect sensitive information.
-    ```tf
-    # terraform.tfvars
-
-    # Your home/office static IP to allow SSH access.
-    my_ip = "YOUR_STATIC_IP/32"
-
-    # The name of your existing EC2 Key Pair in AWS.
-    key_name = "your-aws-key-name"
-    ```
-
-3.  **Initialize Terraform:**
-    This command downloads the necessary provider plugins and modules.
+2.  **Set Environment Variables:**
+    In your **original terminal** (where you cloned the project), set the following environment variables. Terraform will use these to authenticate with Vault.
     ```sh
-    terraform init
+    export VAULT_ADDR='[http://127.0.0.1:8200](http://127.0.0.1:8200)'
+    export VAULT_TOKEN='<paste_the_root_token_here>'
     ```
 
-4.  **Plan the Deployment:**
-    This command creates an execution plan and shows you what resources will be created, modified, or destroyed. It's a good practice to review the plan before applying it.
+3.  **Store the AMI ID in Vault:**
+    Run the following command to store the Amazon Linux 2023 AMI ID that Terraform will use.
     ```sh
-    terraform plan
+    # Note: You may need to verify this is the latest AL2023 AMI for your target region.
+    vault kv put secret/aws/ami ami_id="ami-0c55b159cbfafe1f0"
     ```
 
-5.  **Apply the Configuration:**
-    This command builds and deploys the resources on AWS.
-    ```sh
-    terraform apply
-    ```
-    Terraform will ask for confirmation. Type `yes` to proceed.
+### Step 3: Create a Variables File
+Create a file named `terraform.tfvars` in the root directory. This file will contain your specific configuration values and is ignored by Git.
+```tf
+# terraform.tfvars
+
+# Your home/office static IP to allow SSH access.
+my_ip = "YOUR_STATIC_IP/32"
+
+# The name of your existing EC2 Key Pair in AWS.
+key_name = "your-aws-key-name"
+```
+
+### Step 4: Initialize Terraform
+This command downloads the necessary provider plugins (for both AWS and Vault) and modules.
+```sh
+terraform init
+```
+
+### Step 5: Plan the Deployment
+Review the execution plan to see what resources will be created.
+```sh
+terraform plan
+```
+
+### Step 6: Apply the Configuration
+This command builds and deploys the resources on AWS.
+```sh
+terraform apply
+```
+Terraform will ask for confirmation. Type `yes` to proceed.
 
 ---
 
