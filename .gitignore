@@ -1,0 +1,29 @@
+# Terraform Files
+# ---------------
+# Ignore local Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Ignore crash log files
+crash.log
+
+# Ignore the .terraform directory, which contains provider plugins
+.terraform/
+
+# Ignore the lock file that tracks provider versions
+.terraform.lock.hcl
+
+# Ignore plan files if you save them
+*.tfplan
+
+# Variable Files (VERY IMPORTANT!)
+# --------------------------------
+# Ignore any files containing sensitive variable values
+*.tfvars
+*.tfvars.json
+
+# Miscellaneous
+# -------------
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
