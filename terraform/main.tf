@@ -54,6 +54,16 @@ module "ec2" {
   ami_id            = data.vault_generic_secret.ami.data["ami_id"]
 }
 
+module "eks" {
+  source = "./modules/eks"
+
+  cluster_name       = "my-nodejs-app-cluster"
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.network.private_subnet_ids
+
+  depends_on = [module.network]
+}
+
 resource "local_file" "ansible_inventory" {
   filename = "../ansible/inventory.ini"
   content  = <<EOF
