@@ -1,4 +1,4 @@
-# AWS 2-Tier VPC Infrastructure with Terraform
+# AWS 2-Tier VPC Infrastructure with Terraform (Project still in progress, I will update it soon)
 
 This project provisions a secure, 2-tier cloud architecture on Amazon Web Services (AWS) using Terraform. The entire infrastructure is defined as code, following a modular design and best practices for Infrastructure as Code (IaC).
 
