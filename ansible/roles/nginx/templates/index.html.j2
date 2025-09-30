@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to our Ansible-configured Server!</title>
+</head>
+<body>
+    <h1>Hello from Ansible!</h1>
+    <p>This page was deployed by an Ansible playbook.</p>
+    <hr>
+    <h3>Server Information:</h3>
+    <ul>
+        <li><b>Hostname:</b> {{ ansible_hostname }}</li>
+        <li><b>Private IP Address:</b> {{ ansible_default_ipv4.address }}</li>
+    </ul>
+</body>
+</html>
