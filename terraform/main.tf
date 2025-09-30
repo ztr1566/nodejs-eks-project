@@ -35,6 +35,7 @@ module "network" {
   vpc_id              = module.vpc.vpc_id
   public_subnet_cidr  = var.public_subnet_cidr
   private_subnet_cidr = var.private_subnet_cidr
+  aws_region          = var.region
 }
 
 module "security" {
@@ -45,8 +46,8 @@ module "security" {
 
 module "ec2" {
   source            = "./modules/ec2"
-  public_subnet_id  = module.network.public_subnet_id
-  private_subnet_id = module.network.private_subnet_id
+  public_subnet_id  = module.network.public_subnet_ids[0]
+  private_subnet_id = module.network.private_subnet_ids[0]
   web_sg_id         = module.security.web_sg_id
   private_sg_id     = module.security.private_sg_id
   key_name          = var.key_name
