@@ -74,3 +74,9 @@ EOF
 
   depends_on = [module.ec2]
 }
+
+moved {
+  from = module.network.aws_subnet.public_subnet
+  to   = module.network.aws_subnet.public_subnet_a
+}
+  

@@ -1,14 +1,29 @@
-resource "aws_subnet" "public_subnet" {
+resource "aws_subnet" "public_subnet_a" {
   vpc_id                  = var.vpc_id
-  cidr_block              = var.public_subnet_cidr
+  cidr_block              = "10.0.1.0/24" # Your existing public CIDR
   map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}a"
 
   tags = {
-    Name = "public-subnet"
+    Name                     = "public-subnet-a"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
-resource "aws_subnet" "private_subnet_a" { 
+# --- ADD THIS NEW PUBLIC SUBNET ---
+resource "aws_subnet" "public_subnet_b" {
+  vpc_id                  = var.vpc_id
+  cidr_block              = "10.0.4.0/24" # A new, non-overlapping CIDR
+  map_public_ip_on_launch = true
+  availability_zone       = "${var.aws_region}b"
+
+  tags = {
+    Name                     = "public-subnet-b"
+    "kubernetes.io/role/elb" = "1" # CRITICAL: It needs the same tag
+  }
+}
+
+resource "aws_subnet" "private_subnet_a" {
   vpc_id            = var.vpc_id
   cidr_block        = "10.0.2.0/24"
   availability_zone = "${var.aws_region}a"
@@ -42,7 +57,7 @@ resource "aws_eip" "nat_eip" {
 
 resource "aws_nat_gateway" "nat_gateway" {
   allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.public_subnet.id
+  subnet_id     = aws_subnet.public_subnet_a.id
 
   tags = {
     Name = "my-nat-gateway"
@@ -76,7 +91,7 @@ resource "aws_route_table" "private_rt" {
 }
 
 resource "aws_route_table_association" "public_assoc" {
-  subnet_id      = aws_subnet.public_subnet.id
+  subnet_id      = aws_subnet.public_subnet_a.id
   route_table_id = aws_route_table.public_rt.id
 }
 
