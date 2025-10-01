@@ -1,124 +1,129 @@
-# AWS 2-Tier VPC Infrastructure with Terraform (Project still in progress, I will update it soon)
+🏛️ Architecture
+This project provisions a secure and scalable 2-tier architecture on AWS:
 
-This project provisions a secure, 2-tier cloud architecture on Amazon Web Services (AWS) using Terraform. The entire infrastructure is defined as code, following a modular design and best practices for Infrastructure as Code (IaC).
+Networking Layer: A custom VPC with public and private subnets across two Availability Zones for high availability.
 
-This project uses **HashiCorp Vault** to manage sensitive or configurable data, such as the AMI ID, preventing it from being hardcoded in the main configuration.
+Orchestration Layer: An Amazon EKS cluster with managed node groups running in the private subnets.
 
----
-## 🏛️ Architecture
+Application Layer: The Node.js application, containerized with Docker, runs in Pods managed by a Kubernetes Deployment.
 
-This Terraform configuration deploys the following AWS resources:
+Exposure Layer: An AWS Application Load Balancer (ALB) is automatically provisioned by the AWS Load Balancer Controller to expose the application to the internet via a Kubernetes Ingress.
 
-* **A dedicated Virtual Private Cloud (VPC)** to provide an isolated network environment.
-* **Two Subnets:**
-    * A **Public Subnet** for the web server (Nginx), accessible from the internet.
-    * A **Private Subnet** for backend services (e.g., application server, database), completely isolated from direct internet access.
-* **Networking Gateways:**
-    * An **Internet Gateway** to allow internet traffic to and from the public subnet.
-    * A **NAT Gateway** to allow instances in the private subnet to initiate outbound connections (e.g., for software updates).
-* **Two EC2 Instances:**
-    * A public-facing web server with Nginx automatically installed via `user_data`.
-    * A private backend server for internal application logic.
-* **Security Groups** to act as virtual firewalls, controlling inbound and outbound traffic.
+Database: The application is configured to connect to a MongoDB Atlas cluster (managed externally).
 
+✨ Features
+Infrastructure as Code (IaC): The entire AWS infrastructure is defined and managed with Terraform.
 
+Containerized: The Node.js application is packaged into a lightweight, portable Docker image using multi-stage builds.
 
----
+Orchestrated: Deployed on Kubernetes for high availability, self-healing, and scalability.
 
-## 🛠️ Prerequisites
+Modular & Organized: The project is structured with separate folders for the application (app), infrastructure (terraform), and Kubernetes configuration (kubernetes-manifests).
 
+Secure: Uses private subnets for worker nodes, IAM Roles for Service Accounts (IRSA) for secure permissions, and Kubernetes Secrets for database credentials.
+
+🛠️ Prerequisites
 Before you begin, ensure you have the following tools installed and configured:
 
-1.  [**Terraform**](https://developer.hashicorp.com/terraform/downloads) (v1.0 or later).
-2.  [**AWS CLI**](https://aws.amazon.com/cli/) installed and configured with your credentials (`aws configure`).
-3.  [**HashiCorp Vault**](https://developer.hashicorp.com/vault/downloads) installed.
-4.  An **SSH Key Pair** already created in your AWS account in the target region.
+Terraform (v1.0+)
 
----
+AWS CLI (configured with your credentials via aws configure)
 
-## 🚀 How to Deploy
+Docker
 
-Follow these steps to provision the infrastructure.
+kubectl
 
-### Step 1: Clone the Repository
-```sh
-git clone <your-repository-url>
-cd terraform-aws-project
-```
+Helm
 
-### Step 2: Start and Configure Vault
-For this project, you can run a local Vault server in development mode.
+📁 Project Structure
+.
+├── app/ # Node.js application source code and Dockerfile
+├── terraform/ # All Terraform code (modules, main files)
+├── kubernetes-manifests/ # Kubernetes YAML files (Deployment, Service, Ingress)
+└── README.md # This file
+🚀 Deployment Steps
+(Note: These steps assume you have already created the necessary infrastructure by following the project's tutorial. The terraform/ directory should contain a complete and working configuration.)
 
-1.  **Start the Vault Server:**
-    Open a **separate terminal** and run the following command. Keep this terminal open.
-    ```sh
-    vault server -dev
-    ```
-    Vault will start and print out an **Unseal Key** and a **Root Token**. You will need the **Root Token** for the next step.
+1. Build and Push the Docker Image
+   After provisioning the infrastructure with Terraform, you must build your application's Docker image and push it to the Amazon ECR repository that was created.
 
-2.  **Set Environment Variables:**
-    In your **original terminal** (where you cloned the project), set the following environment variables. Terraform will use these to authenticate with Vault.
-    ```sh
-    export VAULT_ADDR='[http://127.0.0.1:8200](http://127.0.0.1:8200)'
-    export VAULT_TOKEN='<paste_the_root_token_here>'
-    ```
+Get the ECR repository URL from Terraform output:
 
-3.  **Store the AMI ID in Vault:**
-    Run the following command to store the Amazon Linux 2023 AMI ID that Terraform will use.
-    ```sh
-    # Note: You may need to verify this is the latest AL2023 AMI for your target region.
-    vault kv put secret/aws/ami ami_id="ami-0c55b159cbfafe1f0"
-    ```
+Bash
 
-### Step 3: Create a Variables File
-Create a file named `terraform.tfvars` in the root directory. This file will contain your specific configuration values and is ignored by Git.
-```tf
-# terraform.tfvars
+cd terraform
+terraform output ecr_repository_url
+Log in to ECR:
 
-# Your home/office static IP to allow SSH access.
-my_ip = "YOUR_STATIC_IP/32"
+Bash
 
-# The name of your existing EC2 Key Pair in AWS.
-key_name = "your-aws-key-name"
-```
+aws ecr get-login-password --region <your-region> | docker login --username AWS --password-stdin <your-aws-account-id>.dkr.ecr.<your-region>.amazonaws.com
+Build, Tag, and Push the image (from the root project directory):
 
-### Step 4: Initialize Terraform
-This command downloads the necessary provider plugins (for both AWS and Vault) and modules.
-```sh
-terraform init
-```
+Bash
 
-### Step 5: Plan the Deployment
-Review the execution plan to see what resources will be created.
-```sh
-terraform plan
-```
+# Build
 
-### Step 6: Apply the Configuration
-This command builds and deploys the resources on AWS.
-```sh
-terraform apply
-```
-Terraform will ask for confirmation. Type `yes` to proceed.
+docker build -t my-node-app ./app
 
----
+# Tag
 
-## 📤 Outputs
+docker tag my-node-app:latest <PASTE_ECR_REPOSITORY_URL_HERE>:latest
 
-After the deployment is complete, Terraform will display the public IP address of the web server. You can also retrieve it at any time by running:
-```sh
-terraform output public_instance_ip
-```
-You can use this IP address to connect to the instance via SSH:
-```sh
-ssh -i "path/to/your-key.pem" ec2-user@<PUBLIC_IP_ADDRESS>
-```
+# Push
 
----
+docker push <PASTE_ECR_REPOSITORY_URL_HERE>:latest 2. Update Kubernetes Manifests
+Before deploying, you must update the deployment.yml file to use your new ECR image.
 
-## 💣 How to Destroy
+Open kubernetes-manifests/deployment.yml.
 
-To tear down all the resources created by this project and avoid incurring further costs, simply run the following command:
-```sh
+Find the image: line and replace the placeholder with the full ECR repository URL.
+
+3. Configure kubectl
+   Run the command output by Terraform to connect kubectl to your EKS cluster.
+
+Bash
+
+# Run from the terraform/ directory
+
+terraform output configure_kubectl_command
+
+# Copy and run the outputted 'aws eks update-kubeconfig ...' command
+
+4. Create the Database Secret
+   Create a Kubernetes Secret to securely store your MongoDB Atlas connection string.
+
+Bash
+
+kubectl create secret generic mongodb-secret --from-literal=MONGO_URI='<YOUR_MONGODB_ATLAS_URI>' 5. Deploy the Application to EKS
+Apply the Kubernetes manifests to deploy your application.
+
+Bash
+
+# Run from the root project directory
+
+kubectl apply -f kubernetes-manifests/
+🌐 Accessing the Application
+It will take 2-5 minutes for the AWS Load Balancer to be provisioned. You can watch its status:
+
+Bash
+
+kubectl get ingress -w
+Once the ADDRESS field is populated, copy the DNS name and paste it into your web browser.
+
+💣 Destroying the Infrastructure
+To avoid ongoing costs, destroy all resources.
+
+Delete the Kubernetes resources:
+
+Bash
+
+kubectl delete -f kubernetes-manifests/
+Destroy the AWS infrastructure:
+
+Bash
+
+cd terraform
 terraform destroy
-```
+⚠️ Important Note: AWS Account Limits
+Some new AWS accounts have a default restriction that prevents the creation of Application Load Balancers, resulting in an OperationNotPermitted error in the AWS Load Balancer Controller logs. If your Ingress address does not appear after several minutes and troubleshooting, you will need to contact AWS Support and request that this service limit be lifted from your account.
