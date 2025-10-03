@@ -1,8 +1,4 @@
 # terraform/modules/network/main.tf
-
-variable "vpc_id" { type = string }
-variable "aws_region" { type = string }
-
 # --- Public Subnets ---
 resource "aws_subnet" "public_a" {
   vpc_id                  = var.vpc_id
