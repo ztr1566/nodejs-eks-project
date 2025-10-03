@@ -65,7 +65,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Set up Kubeconfig for EKS
-        uses: aws-actions/amazon-eks-set-context@v1
+        uses: aws-actions/amazon-eks-set-context@v2
         with:
           cluster-name: ${{ secrets.EKS_CLUSTER_NAME }}
 
