@@ -61,6 +61,7 @@ module "eks" {
   cluster_name       = "${var.project_name}-cluster"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
+  github_actions_role_arn = aws_iam_role.github_actions_ecr.arn
 
   depends_on = [module.network]
 }
