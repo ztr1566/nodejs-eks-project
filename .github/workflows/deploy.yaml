@@ -1,30 +1,34 @@
-name: Deploy to EKS
+name: Build and Deploy to EKS
 
-# Trigger: This runs the workflow on a push to the main branch
 on:
   push:
     branches:
       - main
 
 env:
-  # --- Make sure these values are correct ---
   AWS_REGION: eu-west-3
   ECR_REPOSITORY: my-node-app-repo
-  EKS_CLUSTER_NAME: nodejs-eks-project-cluster
-  # ----------------------------------------
+  EKS_CLUSTER_NAME: nodejs-eks-project-cluster # Make sure this matches your var.project_name
 
 jobs:
   deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
-
     permissions:
-      id-token: write   # Required for OIDC
-      contents: read    # Required to checkout the code
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Install eksctl
+        run: |
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -49,8 +53,16 @@ jobs:
           # 1. Update kubeconfig to connect to the cluster
           aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
 
-          # 2. Substitute the image name in the deployment manifest
+          # 2. Authorize GitHub Actions IAM role to manage the cluster
+          eksctl create iamidentitymapping \
+            --cluster $EKS_CLUSTER_NAME \
+            --region $AWS_REGION \
+            --arn ${{ secrets.IAM_ROLE_ARN }} \
+            --group system:masters \
+            --username github-actions-ci
+
+          # 3. Substitute the new image tag in the deployment manifest
           sed -i "s|image:.*|image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}|g" kubernetes-manifests/deployment.yaml
-          
-          # 3. Apply the updated manifests
+
+          # 4. Apply the updated manifests
           kubectl apply -f kubernetes-manifests/
