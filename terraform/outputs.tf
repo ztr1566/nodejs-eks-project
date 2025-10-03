@@ -15,3 +15,14 @@ output "public_subnet_ids" {
   description = "List of public subnet IDs"
   value       = module.network.public_subnet_ids
 }
+
+
+output "ecr_repository_url" {
+  description = "The URL of the ECR repository"
+  value       = aws_ecr_repository.app_repo.repository_url
+}
+
+output "github_actions_iam_role_arn" {
+  description = "The ARN of the IAM Role for GitHub Actions to assume"
+  value       = aws_iam_role.github_actions_ecr.arn
+}
