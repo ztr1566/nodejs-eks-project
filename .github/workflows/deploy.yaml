@@ -1,0 +1,56 @@
+name: Deploy to EKS
+
+# Trigger: This runs the workflow on a push to the main branch
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # --- Make sure these values are correct ---
+  AWS_REGION: eu-west-3
+  ECR_REPOSITORY: my-node-app-repo
+  EKS_CLUSTER_NAME: nodejs-eks-project-cluster
+  # ----------------------------------------
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write   # Required for OIDC
+      contents: read    # Required to checkout the code
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }} ./app
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+      - name: Deploy to Amazon EKS
+        run: |
+          # 1. Update kubeconfig to connect to the cluster
+          aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
+
+          # 2. Substitute the image name in the deployment manifest
+          sed -i "s|image:.*|image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}|g" ../kubernetes-manifests/deployment.yaml
+          
+          # 3. Apply the updated manifests
+          kubectl apply -f ../kubernetes-manifests/
