@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "watch": "nodemon app.js"
+    "watch": "nodemon app.js",
+    "lint": "eslint ./"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
     "nodemon": "^3.1.10"
   },
   "devDependencies": {
-    "@types/node": "^24.5.0"
+    "@types/node": "^24.5.0",
+    "eslint": "^9.36.0"
   }
 }
