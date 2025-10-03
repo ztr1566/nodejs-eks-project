@@ -58,7 +58,7 @@ module "ec2" {
 module "eks" {
   source = "./modules/eks"
 
-  cluster_name       = "my-nodejs-app-cluster"
+  cluster_name       = "${var.project_name}-cluster"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
 
@@ -68,15 +68,9 @@ module "eks" {
 resource "local_file" "ansible_inventory" {
   filename = "../ansible/inventory.ini"
   content  = <<EOF
-  [webservers]
-  ${module.ec2.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=~/${var.key_name}.pem
+[webservers]
+${module.ec2.public_ip} ansible_user=ec2-user ansible_ssh_private_key_file=~/${var.key_name}.pem
 EOF
 
   depends_on = [module.ec2]
 }
-
-moved {
-  from = module.network.aws_subnet.public_subnet
-  to   = module.network.aws_subnet.public_subnet_a
-}
-  
