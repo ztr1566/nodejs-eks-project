@@ -12,3 +12,8 @@ output "alb_controller_iam_role_arn" {
   description = "ARN of the IAM role for the ALB controller"
   value       = module.iam_assumable_role_for_service_account.iam_role_arn
 }
+
+output "cluster_arn" {
+  description = "The ARN of the EKS cluster."
+  value       = module.eks.cluster_arn
+}

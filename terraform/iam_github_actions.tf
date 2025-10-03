@@ -41,3 +41,26 @@ resource "aws_iam_role_policy_attachment" "github_ecr_power_user" {
   role       = aws_iam_role.github_actions_ecr.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser"
 }
+
+resource "aws_iam_policy" "github_eks_describe" {
+  name        = "GitHubActions-EKS-DescribeCluster"
+  description = "Allows describing the EKS cluster to update kubeconfig"
+
+  # The policy document itself
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "eks:DescribeCluster",
+        Resource = module.eks.cluster_arn # Dynamically gets the ARN of our cluster
+      },
+    ]
+  })
+}
+
+# Step 5: Attach the new policy to our existing GitHub Actions role
+resource "aws_iam_role_policy_attachment" "github_eks_describe_attachment" {
+  role       = aws_iam_role.github_actions_ecr.name
+  policy_arn = aws_iam_policy.github_eks_describe.arn
+}
