@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: node-app-container
-          image: zizoo1566/my-node-app:latest # The name of our Docker image
+          image: IMAGE_PLACEHOLDER # The name of our Docker image
           ports:
             - containerPort: 3001 # The port our app listens on
           envFrom:
