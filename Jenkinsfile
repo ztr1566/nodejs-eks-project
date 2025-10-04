@@ -1,15 +1,32 @@
 pipeline {
     agent {
         kubernetes {
-            podTemplate(
-                containers: [
-                    containerTemplate(name: 'node', image: 'node:22-alpine', command: 'cat', ttyEnabled: true),
-                    containerTemplate(name: 'kaniko', image: 'gcr.io/kaniko-project/executor:debug', command: 'cat', ttyEnabled: true)
-                ],
-                volumes: [
-                    secretVolume(secretName: 'ecr-registry-secret', mountPath: '/kaniko/.docker')
-                ]
-            )
+            yaml """
+            apiVersion: v1
+            kind: Pod
+            spec:
+                containers:
+                    - name: node
+                        image: node:22-alpine
+                        command:
+                        - cat
+                        tty: true
+                    - name: kaniko
+                        image: gcr.io/kaniko-project/executor:debug
+                        command:
+                        - cat
+                        tty: true
+                        volumeMounts:
+                        - name: docker-config
+                        mountPath: /kaniko/.docker
+                volumes:
+                    - name: docker-config
+                        secret:
+                        secretName: ecr-registry-secret
+                        items:
+                        - key: .dockerconfigjson
+                            path: config.json
+            """
         }
     }
 
