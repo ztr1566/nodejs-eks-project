@@ -14,3 +14,9 @@ variable "private_subnet_ids" {
   description = "A list of private subnet IDs for the EKS worker nodes"
   type        = list(string)
 }
+
+variable "cluster_addons" {
+  description = "Map of EKS cluster addons to enable."
+  type        = map(any)
+  default     = {}
+}
