@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jenkins-agent
+  namespace: jenkins
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jenkins-agent-clusterrole # Changed to ClusterRole
+rules:
+- apiGroups: ["", "apps", "networking.k8s.io"]
+  resources: ["deployments", "services", "ingresses", "pods"]
+  verbs: ["create", "get", "list", "patch", "update", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jenkins-agent-binding
+  namespace: default # Create the binding in the 'default' namespace
+subjects:
+- kind: ServiceAccount
+  name: jenkins-agent
+  namespace: jenkins # The ServiceAccount lives in 'jenkins'
+roleRef:
+  kind: ClusterRole # Refer to the ClusterRole
+  name: jenkins-agent-clusterrole
+  apiGroup: rbac.authorization.k8s.io
