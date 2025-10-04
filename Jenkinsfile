@@ -5,6 +5,7 @@ pipeline {
 apiVersion: v1
 kind: Pod
 spec:
+  serviceAccountName: jenkins-agent 
   containers:
   - name: node
     image: node:22-alpine
@@ -19,7 +20,6 @@ spec:
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
-  # 👇 Use the official AWS CLI image for deployment 👇
   - name: deploy
     image: amazon/aws-cli:latest
     command:
@@ -44,7 +44,6 @@ spec:
     }
 
     stages {
-        // ... (Checkout, Build & Test, Build & Push stages are unchanged) ...
         stage('Checkout') {
             steps {
                 checkout scm
@@ -71,24 +70,20 @@ spec:
         }
 
 
-        // 👇 The final corrected Deploy stage 👇
         stage('Deploy to EKS') {
             steps {
                 container('deploy') {
-                    withKubeConfig([credentialsId: 'kubeconfig-file']) {
-                        script {
-                            sh """
-                            # First, install kubectl in the container
-                            curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.5/2024-01-04/bin/linux/amd64/kubectl
-                            chmod +x ./kubectl
-                            mv ./kubectl /usr/local/bin/
+                    script {
+                        sh """
+                        curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.5/2024-01-04/bin/linux/amd64/kubectl
+                        chmod +x ./kubectl
+                        mv ./kubectl /usr/local/bin/
 
-                            # Now, run the deployment commands
-                            echo "Deploying image: ${IMAGE_URI}"
-                            sed -i "s|zizoo1566/my-node-app:latest|${IMAGE_URI}|g" kubernetes-manifests/deployment.yaml
-                            kubectl apply -f kubernetes-manifests/deployment.yaml
-                            """
-                        }
+                        echo "Deploying image: ${IMAGE_URI}"
+                        sed -i "s|zizoo1566/my-node-app:latest|${IMAGE_URI}|g" kubernetes-manifests/deployment.yaml
+                        
+                        kubectl apply -f kubernetes-manifests/deployment.yaml --namespace default
+                        """
                     }
                 }
             }
