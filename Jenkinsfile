@@ -20,7 +20,7 @@ spec:
     - name: docker-config
       mountPath: /kaniko/.docker
   - name: kubectl
-    image: bitnami/kubectl
+    image: lachlanevenson/k8s-kubectl
     command:
     - cat
     tty: true
