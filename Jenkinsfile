@@ -70,7 +70,7 @@ spec:
         stage('Deploy to EKS') {
             steps {
                 // This stage runs in the default 'jnlp' container which has kubectl
-                withKubeconfig('kubeconfig-file') {
+                withKubeConfig('kubeconfig-file') {
                     echo "Deploying image: ${IMAGE_URI}"
                     sh "sed -i 's|zizoo1566/my-node-app:latest|${IMAGE_URI}|g' kubernetes-manifests/deployment.yaml"
                     sh "kubectl apply -f kubernetes-manifests/deployment.yaml"
