@@ -19,8 +19,9 @@ spec:
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
-  - name: kubectl
-    image: lachlanevenson/k8s-kubectl
+  # 👇 Use the official AWS CLI image for deployment 👇
+  - name: deploy
+    image: amazon/aws-cli:latest
     command:
     - cat
     tty: true
@@ -43,12 +44,12 @@ spec:
     }
 
     stages {
+        // ... (Checkout, Build & Test, Build & Push stages are unchanged) ...
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
         stage('Build & Test') {
             steps {
                 container('node') {
@@ -59,7 +60,6 @@ spec:
                 }
             }
         }
-
         stage('Build & Push with Kaniko') {
             steps {
                 container('kaniko') {
@@ -70,14 +70,24 @@ spec:
             }
         }
 
+
+        // 👇 The final corrected Deploy stage 👇
         stage('Deploy to EKS') {
             steps {
-                container('kubectl') {
+                container('deploy') {
                     withKubeConfig([credentialsId: 'kubeconfig-file']) {
                         script {
+                            sh """
+                            # First, install kubectl in the container
+                            curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.5/2024-01-04/bin/linux/amd64/kubectl
+                            chmod +x ./kubectl
+                            mv ./kubectl /usr/local/bin/
+
+                            # Now, run the deployment commands
                             echo "Deploying image: ${IMAGE_URI}"
-                            sh "sed -i 's|zizoo1566/my-node-app:latest|${IMAGE_URI}|g' kubernetes-manifests/deployment.yaml"
-                            sh "kubectl apply -f kubernetes-manifests/deployment.yaml"
+                            sed -i "s|zizoo1566/my-node-app:latest|${IMAGE_URI}|g" kubernetes-manifests/deployment.yaml
+                            kubectl apply -f kubernetes-manifests/deployment.yaml
+                            """
                         }
                     }
                 }
