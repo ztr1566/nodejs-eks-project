@@ -1,4 +1,4 @@
-# 🚀 Node.js EKS DevOps Project
+# 🚀 Enterprise DevSecOps Platform
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)](https://github.com/ztr1566/nodejs-eks-project)
 [![Security](https://img.shields.io/badge/Security-Trivy%20%2B%20Snyk-blue)](https://github.com/ztr1566/nodejs-eks-project)
