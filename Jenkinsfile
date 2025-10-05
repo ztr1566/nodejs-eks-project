@@ -8,7 +8,7 @@ spec:
   serviceAccountName: jenkins-agent 
   containers:
   - name: node
-    image: node:22-alpine
+    image: node:24-alpine
     command: ["cat"]
     tty: true
   - name: kaniko
@@ -26,13 +26,6 @@ spec:
     image: aquasec/trivy:latest
     command: ["cat"]
     tty: true
-  - name: grype
-    image: alpine:latest
-    command: ["cat"]
-    tty: true
-    volumeMounts:
-    - name: docker-config
-      mountPath: /home/jenkins/agent/.docker
   volumes:
   - name: docker-config
     secret:
@@ -78,28 +71,23 @@ spec:
             }
         }
         
-        stage('Security Scan (Grype)') {
+       stage('Security Scan') {
             steps {
-                container('grype') {
-                    // نحدد متغير البيئة ليشير إلى مكان الصلاحيات
+                container('trivy') {
                     withEnv(['DOCKER_CONFIG=/home/jenkins/agent/.docker']) {
                         script {
-                            echo "Installing Grype..."
-                            sh "apk add --no-cache curl"
-                            sh "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin"
-                            
                             def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
                             def repositoryUri = IMAGE_URI.tokenize(':')[0]
                             def imageWithDigest = "${repositoryUri}@${imageDigest}"
                             
-                            echo "Scanning image with Grype: ${imageWithDigest}"
-                            sh "grype ${imageWithDigest} --fail-on high"
+                            echo "Scanning image with Trivy: ${imageWithDigest}"
+                            sh "trivy image --exit-code 0 --severity HIGH,CRITICAL ${imageWithDigest}"
                         }
                     }
                 }
             }
         }
-        
+
         stage('Deploy to EKS') {
             steps {
                 deployToEKS(
