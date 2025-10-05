@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: node-app-container
-          image: 357186326329.dkr.ecr.eu-west-3.amazonaws.com/nodejs-eks-app-repo:6b3c97a-42
+          image: 357186326329.dkr.ecr.eu-west-3.amazonaws.com/nodejs-eks-app-repo:5b06c72-43
           ports:
             - containerPort: 3001
           envFrom:
