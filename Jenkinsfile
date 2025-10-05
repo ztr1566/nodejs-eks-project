@@ -28,7 +28,7 @@ spec:
     tty: true
   - name: grype   # <<< إضافة الكونتينر الجديد
     image: anchore/grype:latest
-    command: ["sleep", "infinity"]
+    command: ["cat"]
     tty: true
   volumes:
   - name: docker-config
