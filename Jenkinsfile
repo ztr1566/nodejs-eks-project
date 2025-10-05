@@ -81,7 +81,7 @@ spec:
                             def imageWithDigest = "${repositoryUri}@${imageDigest}"
                             
                             echo "Scanning image with Trivy: ${imageWithDigest}"
-                            sh "trivy image --exit-code 0 --severity HIGH,CRITICAL ${imageWithDigest}"
+                            sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${imageWithDigest}"
                         }
                     }
                 }
