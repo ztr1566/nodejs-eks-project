@@ -68,16 +68,6 @@ spec:
             }
         }
 
-        // stage('Security Scan: Image') {
-        //     steps {
-        //         container('trivy') {
-        //             sh """
-        //             trivy image --exit-code 1 --severity HIGH,CRITICAL ${env.IMAGE_URI}
-        //             """
-        //         }
-        //     }
-        // }
-
         stage('Deploy to EKS') {
             steps {
                 script {
