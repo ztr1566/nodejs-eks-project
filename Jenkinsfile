@@ -47,28 +47,24 @@ spec:
                 checkout scm
             }
         }
-    
-        stage('Debug: List Workspace Content') {
-            steps {
-                echo "--- Checking Workspace Content ---"
-                sh 'ls -la'
-                echo "--------------------------------"
-            }
-        } 
 
         stage('Build & Test') {
             steps {
-                runTests(appDir: 'app')
+                script {
+                    runTests(appDir: 'app')
+                }
             }
         }
 
         stage('Build & Push Image') {
             steps {
-                buildAndPush(
-                    imageURI: IMAGE_URI,
-                    dockerfile: 'app/Dockerfile',
-                    context: 'app'
-                )
+                script {
+                    buildAndPush(
+                        imageURI: IMAGE_URI,
+                        dockerfile: 'app/Dockerfile',
+                        context: 'app'
+                    )
+                }
             }
         }
 
@@ -84,11 +80,13 @@ spec:
 
         stage('Deploy to EKS') {
             steps {
-                deployToEKS(
-                    imageURI: IMAGE_URI,
-                    manifestPath: 'kubernetes-manifests/deployment.yaml',
-                    namespace: 'default'
-                )
+                script {
+                    deployToEKS(
+                        imageURI: IMAGE_URI,
+                        manifestPath: 'kubernetes-manifests/deployment.yaml',
+                        namespace: 'default'
+                    )
+                }
             }
         }
     }
