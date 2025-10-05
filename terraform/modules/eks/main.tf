@@ -31,5 +31,6 @@ resource "aws_eks_node_group" "this" {
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
     aws_iam_role_policy_attachment.ec2_container_registry_read_only,
+    module.eks
   ]
 }
