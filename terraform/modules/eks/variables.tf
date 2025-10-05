@@ -20,3 +20,13 @@ variable "cluster_addons" {
   type        = map(any)
   default     = {}
 }
+
+variable "app_repo_arn" {
+  description = "The ARN of the main application ECR repository"
+  type        = string
+}
+
+variable "kaniko_cache_repo_arn" {
+  description = "The ARN of the Kaniko cache ECR repository"
+  type        = string
+}

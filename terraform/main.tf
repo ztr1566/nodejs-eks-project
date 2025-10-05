@@ -36,4 +36,7 @@ module "eks" {
       most_recent = true
     }
   }
+
+  app_repo_arn          = aws_ecr_repository.app_repo.arn
+  kaniko_cache_repo_arn = aws_ecr_repository.kaniko_cache_repo.arn
 }
