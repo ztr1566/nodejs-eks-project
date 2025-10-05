@@ -47,6 +47,14 @@ spec:
                 checkout scm
             }
         }
+    
+        stage('Debug: List Workspace Content') {
+            steps {
+                echo "--- Checking Workspace Content ---"
+                sh 'ls -la'
+                echo "--------------------------------"
+            }
+        } 
 
         stage('Build & Test') {
             steps {
