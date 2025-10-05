@@ -61,12 +61,12 @@ spec:
         stage('Build & Push Image') {
             steps {
                 script {
-                    def digestFilePath = buildAndPush(
+                    def digestFileName = buildAndPush(
                         imageURI: IMAGE_URI,
                         dockerfile: 'app/Dockerfile',
                         context: 'app'
                     )
-                    env.DIGEST_FILE_PATH = digestFilePath
+                    env.DIGEST_FILE_NAME = digestFileName
                 }
             }
         }
@@ -75,10 +75,9 @@ spec:
             steps {
                 container('trivy') {
                     script {
-                        def imageDigest = readFile(env.DIGEST_FILE_PATH).trim()
+                        def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
                         def repositoryUri = IMAGE_URI.tokenize(':')[0]
                         def imageWithDigest = "${repositoryUri}@${imageDigest}"
-                        
                         echo "Scanning image with digest: ${imageWithDigest}"
                         sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${imageWithDigest}"
                     }
