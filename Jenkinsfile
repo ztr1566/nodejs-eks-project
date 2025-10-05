@@ -1,3 +1,5 @@
+@Library('_') _
+
 pipeline {
     agent {
         kubernetes {
