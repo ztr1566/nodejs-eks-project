@@ -1,5 +1,3 @@
-@Library('_') _
-
 pipeline {
     agent {
         kubernetes {
@@ -44,9 +42,10 @@ spec:
     }
 
     stages {
-        stage('Checkout') {
+        stage('Initialize') { 
             steps {
                 checkout scm
+                library 'internal-lib'
             }
         }
 
