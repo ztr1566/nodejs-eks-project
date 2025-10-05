@@ -3,6 +3,7 @@ def call(Map config) {
     def dockerfile = config.dockerfile ?: 'Dockerfile'
     def context = config.context ?: '.'
     def digestFileName = "image-digest.txt"
+    def cacheRepo = "${config.awsAccountId}.dkr.ecr.${config.awsRegion}.amazonaws.com/kaniko-cache"
 
     container('kaniko') {
         echo "Building and pushing image: ${imageURI}"
@@ -11,6 +12,7 @@ def call(Map config) {
                          --context=${context} \
                          --destination=${imageURI} \
                          --cache=true \
+                         --cache-repo=${cacheRepo} \
                          --digest-file=${digestFileName}
         """
     }

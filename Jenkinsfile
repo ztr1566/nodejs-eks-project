@@ -45,7 +45,6 @@ spec:
         AWS_ACCOUNT_ID = credentials('aws-account-id')
         AWS_REGION     = credentials('aws-region')
         ECR_REPOSITORY = 'nodejs-eks-app-repo'
-        IMAGE_URI = "${AWS_ACCOUNT_ID.trim()}.dkr.ecr.${AWS_REGION.trim()}.amazonaws.com/${ECR_REPOSITORY}:${env.GIT_COMMIT.take(7)}-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -53,6 +52,10 @@ spec:
             steps {
                 checkout scm
                 library identifier: 'internal-lib@main', retriever: legacySCM(scm)
+
+                script {
+                    env.IMAGE_URI = "${env.AWS_ACCOUNT_ID.trim()}.dkr.ecr.${env.AWS_REGION.trim()}.amazonaws.com/${env.ECR_REPOSITORY}:${env.GIT_COMMIT.take(7)}-${env.BUILD_NUMBER}"
+                }
             }
         }
 
@@ -82,7 +85,7 @@ spec:
             steps {
                 script {
                     def digestFileName = buildAndPush(
-                        imageURI: IMAGE_URI,
+                        imageURI: env.IMAGE_URI,
                         dockerfile: 'app/Dockerfile',
                         context: 'app'
                     )
@@ -97,7 +100,7 @@ spec:
                     withEnv(['DOCKER_CONFIG=/home/jenkins/agent/.docker']) {
                         script {
                             def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
-                            def repositoryUri = IMAGE_URI.tokenize(':')[0]
+                            def repositoryUri = env.IMAGE_URI.tokenize(':')[0]
                             def imageWithDigest = "${repositoryUri}@${imageDigest}"
                             
                             echo "Scanning image with Trivy: ${imageWithDigest}"
@@ -111,7 +114,7 @@ spec:
         stage('Deploy to EKS') {
             steps {
                 deployToEKS(
-                    imageURI: IMAGE_URI,
+                    imageURI: env.IMAGE_URI,
                     manifestPath: 'kubernetes-manifests/deployment.yaml',
                     namespace: 'default'
                 )
