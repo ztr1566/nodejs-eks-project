@@ -18,7 +18,7 @@ spec:
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
-    - name: kaniko-cache-volume  # <<< 2. قم بإضافة هذا الـ Mount
+    - name: kaniko-cache-volume
       mountPath: /cache
   - name: deploy
     image: amazon/aws-cli:latest
