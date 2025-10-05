@@ -26,6 +26,10 @@ spec:
     image: aquasec/trivy:latest
     command: ["cat"]
     tty: true
+  - name: snyk
+    image: snyk/snyk:docker
+    command: ["cat"]
+    tty: true
   volumes:
   - name: docker-config
     secret:
@@ -49,6 +53,22 @@ spec:
             steps {
                 checkout scm
                 library identifier: 'internal-lib@main', retriever: legacySCM(scm)
+            }
+        }
+
+        stage('Security Scan: Code (SAST & SCA)') {
+            steps {
+                withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+                    container('snyk') {
+                        dir('app') {
+                            echo "--- Running Snyk SCA (Dependency Scan) ---"
+                            sh "snyk test --severity-threshold=high"
+
+                            echo "--- Running Snyk SAST (Code Scan) ---"
+                            sh "snyk code test --severity-threshold=high"
+                        }
+                    }
+                }
             }
         }
 
