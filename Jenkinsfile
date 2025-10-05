@@ -45,39 +45,33 @@ spec:
         stage('Initialize') { 
             steps {
                 checkout scm
-                library 'internal-lib'
+                library identifier: 'internal-lib@main', retriever: legacySCM(scm)
             }
         }
 
         stage('Build & Test') {
             steps {
-                script {
-                    runTests(appDir: 'app')
-                }
+                runTests(appDir: 'app')
             }
         }
 
         stage('Build & Push Image') {
             steps {
-                script {
-                    buildAndPush(
-                        imageURI: IMAGE_URI,
-                        dockerfile: 'app/Dockerfile',
-                        context: 'app'
-                    )
-                }
+                buildAndPush(
+                    imageURI: IMAGE_URI,
+                    dockerfile: 'app/Dockerfile',
+                    context: 'app'
+                )
             }
         }
 
         stage('Deploy to EKS') {
             steps {
-                script {
-                    deployToEKS(
-                        imageURI: IMAGE_URI,
-                        manifestPath: 'kubernetes-manifests/deployment.yaml',
-                        namespace: 'default'
-                    )
-                }
+                deployToEKS(
+                    imageURI: IMAGE_URI,
+                    manifestPath: 'kubernetes-manifests/deployment.yaml',
+                    namespace: 'default'
+                )
             }
         }
     }
