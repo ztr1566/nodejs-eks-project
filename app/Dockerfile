@@ -2,6 +2,7 @@ FROM node:18-alpine AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm ci
+RUN npm ls cross-spawn
 COPY . .
 
 FROM node:18-alpine
