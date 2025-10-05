@@ -79,13 +79,11 @@ spec:
             steps {
                 container('grype') {
                     script {
-                        // الخطوة 1: تثبيت Grype داخل كونتينر alpine
                         echo "Installing Grype..."
                         sh "apk add --no-cache curl"
                         sh "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin"
                         
-                        // الخطوة 2: الآن يمكننا تشغيل الفحص كالمعتاد
-                        def imageDigest = readFile(env.DIGEST_FILE_PATH).trim()
+                        def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
                         def repositoryUri = IMAGE_URI.tokenize(':')[0]
                         def imageWithDigest = "${repositoryUri}@${imageDigest}"
                         
