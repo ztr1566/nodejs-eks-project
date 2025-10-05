@@ -409,4 +409,4 @@ This project showcases:
 - 🚀 **Automated CI/CD Pipeline** with Jenkins
 - 📈 **Scalable Infrastructure** with auto-scaling capabilities
 
-**Built with ❤️ by ztr1566 | DevOps Engineer & Node.js Developer**
+**Built by ztr1566 | DevOps Engineer & Backend Developer**
