@@ -13,6 +13,7 @@ def call(Map config) {
                          --destination=${imageURI} \
                          --cache=true \
                          --cache-repo=${cacheRepo} \
+                         --cache-ttl=6h \  
                          --digest-file=${digestFileName}
         """
     }
