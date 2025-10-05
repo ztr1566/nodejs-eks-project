@@ -22,7 +22,10 @@ spec:
     image: amazon/aws-cli:latest
     command: ["cat"]
     tty: true
-  
+  - name: trivy
+    image: aquasec/trivy:latest
+    command: ["cat"]
+    tty: true
   volumes:
   - name: docker-config
     secret:
@@ -62,6 +65,14 @@ spec:
                     dockerfile: 'app/Dockerfile',
                     context: 'app'
                 )
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                container('trivy') {
+                    sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${env.IMAGE_URI}"
+                }
             }
         }
 
