@@ -8,12 +8,12 @@ def call(Map config) {
     container('kaniko') {
         echo "Building and pushing image: ${imageURI}"
         sh """
-        /kaniko/executor --dockerfile=${dockerfile} \
-                         --context=${context} \
-                         --destination=${imageURI} \
-                         --cache=true \
-                         --cache-repo=${cacheRepo} \
-                         --cache-ttl=6h \  
+        /kaniko/executor --dockerfile=${dockerfile}
+                         --context=${context}
+                         --destination=${imageURI}
+                         --cache=true
+                         --cache-repo=${cacheRepo}
+                         --cache-ttl=6h
                          --digest-file=${digestFileName}
         """
     }
