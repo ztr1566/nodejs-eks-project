@@ -26,6 +26,10 @@ spec:
     image: aquasec/trivy:latest
     command: ["cat"]
     tty: true
+  - name: grype   # <<< إضافة الكونتينر الجديد
+    image: anchore/grype:latest
+    command: ["sleep", "infinity"]
+    tty: true
   volumes:
   - name: docker-config
     secret:
@@ -71,15 +75,18 @@ spec:
             }
         }
         
-        stage('Security Scan') {
+        stage('Security Scan (Grype)') { // <<< مرحلة الفحص باستخدام Grype
             steps {
-                container('trivy') {
+                container('grype') {
+                    // نستخدم نفس طريقة الـ digest المضمونة
                     script {
-                        def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
+                        def imageDigest = readFile(env.DIGEST_FILE_PATH).trim()
                         def repositoryUri = IMAGE_URI.tokenize(':')[0]
                         def imageWithDigest = "${repositoryUri}@${imageDigest}"
-                        echo "Scanning image with digest: ${imageWithDigest}"
-                        sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${imageWithDigest}"
+                        
+                        echo "Scanning image with Grype: ${imageWithDigest}"
+                        
+                        sh "grype ${imageWithDigest} --fail-on high"
                     }
                 }
             }
