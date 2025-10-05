@@ -80,7 +80,7 @@ spec:
                 container('grype') {
                     // نستخدم نفس طريقة الـ digest المضمونة
                     script {
-                        def imageDigest = readFile(env.DIGEST_FILE_PATH).trim()
+                        def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
                         def repositoryUri = IMAGE_URI.tokenize(':')[0]
                         def imageWithDigest = "${repositoryUri}@${imageDigest}"
                         
