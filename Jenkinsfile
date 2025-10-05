@@ -30,6 +30,9 @@ spec:
     image: alpine:latest
     command: ["cat"]
     tty: true
+    volumeMounts:
+    - name: docker-config
+      mountPath: /home/jenkins/agent/.docker
   volumes:
   - name: docker-config
     secret:
@@ -78,22 +81,25 @@ spec:
         stage('Security Scan (Grype)') {
             steps {
                 container('grype') {
-                    script {
-                        echo "Installing Grype..."
-                        sh "apk add --no-cache curl"
-                        sh "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin"
-                        
-                        def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
-                        def repositoryUri = IMAGE_URI.tokenize(':')[0]
-                        def imageWithDigest = "${repositoryUri}@${imageDigest}"
-                        
-                        echo "Scanning image with Grype: ${imageWithDigest}"
-                        sh "grype ${imageWithDigest} --fail-on high"
+                    // نحدد متغير البيئة ليشير إلى مكان الصلاحيات
+                    withEnv(['DOCKER_CONFIG=/home/jenkins/agent/.docker']) {
+                        script {
+                            echo "Installing Grype..."
+                            sh "apk add --no-cache curl"
+                            sh "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin"
+                            
+                            def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
+                            def repositoryUri = IMAGE_URI.tokenize(':')[0]
+                            def imageWithDigest = "${repositoryUri}@${imageDigest}"
+                            
+                            echo "Scanning image with Grype: ${imageWithDigest}"
+                            sh "grype ${imageWithDigest} --fail-on high"
+                        }
                     }
                 }
             }
         }
-
+        
         stage('Deploy to EKS') {
             steps {
                 deployToEKS(
