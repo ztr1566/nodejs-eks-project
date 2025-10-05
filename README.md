@@ -66,12 +66,14 @@ The project follows a modern microservices architecture with:
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v18+ recommended)
+- **Node.js** (v22+ recommended)
 - **Docker** & Docker Compose
 - **kubectl** configured for EKS
 - **AWS CLI** configured
-- **Terraform** (v1.0+)
-- **Jenkins** (for CI/CD)
+- **Terraform** (v1.1+)
+- **Jenkins** (for CI)
+- **GitHub** (for code hosting)
+- **ArgoCD** (for CD)
 
 ### Local Development
 
