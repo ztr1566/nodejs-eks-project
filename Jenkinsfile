@@ -9,19 +9,20 @@ spec:
   containers:
   - name: node
     image: node:22-alpine
-    command: [- cat]
+    command: ["cat"]
     tty: true
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    command: [- cat]
+    command: ["cat"]
     tty: true
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
   - name: deploy
     image: amazon/aws-cli:latest
-    command: [- cat]
+    command: ["cat"]
     tty: true
+  
   volumes:
   - name: docker-config
     secret:
@@ -62,6 +63,16 @@ spec:
                 )
             }
         }
+
+        // stage('Security Scan: Image') {
+        //     steps {
+        //         container('trivy') {
+        //             sh """
+        //             trivy image --exit-code 1 --severity HIGH,CRITICAL ${env.IMAGE_URI}
+        //             """
+        //         }
+        //     }
+        // }
 
         stage('Deploy to EKS') {
             steps {
