@@ -26,6 +26,9 @@ spec:
     image: aquasec/trivy:latest
     command: ["cat"]
     tty: true
+    volumeMounts:
+    - name: docker-config
+      mountPath: /home/jenkins/agent/.docker
   - name: snyk
     image: snyk/snyk:docker
     command: ["cat"]
@@ -100,7 +103,7 @@ spec:
                     withEnv(['DOCKER_CONFIG=/home/jenkins/agent/.docker']) {
                         script {
                             def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
-                            def repositoryUri = env.IMAGE_URI.tokenize(':')[0]
+                            def repositoryUri = IMAGE_URI.tokenize(':')[0]
                             def imageWithDigest = "${repositoryUri}@${imageDigest}"
                             
                             echo "Scanning image with Trivy: ${imageWithDigest}"
