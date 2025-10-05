@@ -6,7 +6,7 @@ def call(Map config) {
     container('kaniko') {
         echo "Building and pushing image: ${imageURI}"
         sh """
-        /kaniko/executor --dockerfile=${dockerfile} --context=${context} --destination=${imageURI} --cache=true
+        /kaniko/executor --dockerfile=${dockerfile} --context=${context} --destination=${imageURI} --cache=false
         """
     }
 }
