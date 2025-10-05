@@ -9,21 +9,18 @@ spec:
   containers:
   - name: node
     image: node:22-alpine
-    command:
-    - cat
+    command: [- cat]
     tty: true
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    command:
-    - cat
+    command: [- cat]
     tty: true
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
   - name: deploy
     image: amazon/aws-cli:latest
-    command:
-    - cat
+    command: [- cat]
     tty: true
   volumes:
   - name: docker-config
@@ -49,43 +46,30 @@ spec:
                 checkout scm
             }
         }
+
         stage('Build & Test') {
             steps {
-                container('node') {
-                    dir('app') {
-                        sh 'npm install'
-                        sh 'npm run lint'
-                    }
-                }
-            }
-        }
-        stage('Build & Push with Kaniko') {
-            steps {
-                container('kaniko') {
-                    sh """
-                    /kaniko/executor --dockerfile=app/Dockerfile --context=app --destination=${IMAGE_URI} --cache=true
-                    """
-                }
+                runTests(appDir: 'app')
             }
         }
 
+        stage('Build & Push Image') {
+            steps {
+                buildAndPush(
+                    imageURI: IMAGE_URI,
+                    dockerfile: 'app/Dockerfile',
+                    context: 'app'
+                )
+            }
+        }
 
         stage('Deploy to EKS') {
             steps {
-                container('deploy') {
-                    script {
-                        sh """
-                        curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.5/2024-01-04/bin/linux/amd64/kubectl
-                        chmod +x ./kubectl
-                        mv ./kubectl /usr/local/bin/
-
-                        echo "Deploying image: ${IMAGE_URI}"
-                        sed -i "s|zizoo1566/my-node-app:latest|${IMAGE_URI}|g" kubernetes-manifests/deployment.yaml
-                        
-                        kubectl apply -f kubernetes-manifests/deployment.yaml --namespace default
-                        """
-                    }
-                }
+                deployToEKS(
+                    imageURI: IMAGE_URI,
+                    manifestPath: 'kubernetes-manifests/deployment.yaml',
+                    namespace: 'default'
+                )
             }
         }
     }
