@@ -26,8 +26,8 @@ spec:
     image: aquasec/trivy:latest
     command: ["cat"]
     tty: true
-  - name: grype   # <<< إضافة الكونتينر الجديد
-    image: anchore/grype:latest
+  - name: grype
+    image: alpine:latest
     command: ["cat"]
     tty: true
   volumes:
@@ -75,17 +75,21 @@ spec:
             }
         }
         
-        stage('Security Scan (Grype)') { // <<< مرحلة الفحص باستخدام Grype
+        stage('Security Scan (Grype)') {
             steps {
                 container('grype') {
-                    // نستخدم نفس طريقة الـ digest المضمونة
                     script {
-                        def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
+                        // الخطوة 1: تثبيت Grype داخل كونتينر alpine
+                        echo "Installing Grype..."
+                        sh "apk add --no-cache curl"
+                        sh "curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin"
+                        
+                        // الخطوة 2: الآن يمكننا تشغيل الفحص كالمعتاد
+                        def imageDigest = readFile(env.DIGEST_FILE_PATH).trim()
                         def repositoryUri = IMAGE_URI.tokenize(':')[0]
                         def imageWithDigest = "${repositoryUri}@${imageDigest}"
                         
                         echo "Scanning image with Grype: ${imageWithDigest}"
-                        
                         sh "grype ${imageWithDigest} --fail-on high"
                     }
                 }
