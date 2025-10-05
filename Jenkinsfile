@@ -18,6 +18,8 @@ spec:
     volumeMounts:
     - name: docker-config
       mountPath: /kaniko/.docker
+    - name: kaniko-cache-volume  # <<< 2. قم بإضافة هذا الـ Mount
+      mountPath: /cache
   - name: deploy
     image: amazon/aws-cli:latest
     command: ["cat"]
@@ -40,6 +42,8 @@ spec:
       items:
       - key: .dockerconfigjson
         path: config.json
+  - name: kaniko-cache-volume
+    emptyDir: {}
 """
         }
     }
@@ -105,7 +109,7 @@ spec:
                             def imageDigest = readFile(env.DIGEST_FILE_NAME).trim()
                             def repositoryUri = IMAGE_URI.tokenize(':')[0]
                             def imageWithDigest = "${repositoryUri}@${imageDigest}"
-                            
+
                             echo "Scanning image with Trivy: ${imageWithDigest}"
                             sh "trivy image --exit-code 1 --severity HIGH,CRITICAL ${imageWithDigest}"
                         }
