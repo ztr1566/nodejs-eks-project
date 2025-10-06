@@ -26,11 +26,6 @@ variable "app_repo_arn" {
   type        = string
 }
 
-variable "kaniko_cache_repo_arn" {
-  description = "The ARN of the Kaniko cache ECR repository"
-  type        = string
-}
-
 variable "current_user_arn" {
   description = "ARN of the current AWS user/role"
   type        = string

@@ -3,7 +3,7 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name                   = var.cluster_name
-  cluster_version                = "1.31"
+  cluster_version                = "1.33"
   cluster_endpoint_public_access = true
   vpc_id                         = var.vpc_id
   subnet_ids                     = var.private_subnet_ids
@@ -55,21 +55,4 @@ module "eks" {
   tags = {
     Environment = "production"
   }
-}
-
-resource "aws_eks_addon" "ebs_csi" {
-  cluster_name  = module.eks.cluster_name
-  addon_name    = "aws-ebs-csi-driver"
-  addon_version = "v1.35.0-eksbuild.1"
-
-  service_account_role_arn = aws_iam_role.ebs_csi_role.arn
-
-  resolve_conflicts_on_create = "OVERWRITE"
-  resolve_conflicts_on_update = "OVERWRITE"
-
-  depends_on = [
-    module.eks,
-    aws_iam_role.ebs_csi_role,
-    aws_eks_pod_identity_association.ebs_csi
-  ]
 }

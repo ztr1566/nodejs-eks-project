@@ -50,7 +50,6 @@ data "aws_iam_policy_document" "ecr_policy_doc" {
     ]
     resources = [
       var.app_repo_arn,
-      var.kaniko_cache_repo_arn
     ]
   }
 }

@@ -32,14 +32,13 @@ module "eks" {
   cluster_name       = "${var.project_name}-cluster"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
-  current_user_arn = data.aws_caller_identity.current.arn
+  current_user_arn   = data.aws_caller_identity.current.arn
 
   cluster_addons = {
     aws-ebs-csi-driver = {
-      most_recent            = true
+      most_recent = true
     }
   }
 
-  app_repo_arn          = aws_ecr_repository.app_repo.arn
-  kaniko_cache_repo_arn = aws_ecr_repository.kaniko_cache_repo.arn
+  app_repo_arn = aws_ecr_repository.app_repo.arn
 }
