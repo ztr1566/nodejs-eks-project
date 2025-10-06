@@ -22,3 +22,8 @@ output "github_actions_iam_role_arn" {
   description = "The ARN of the IAM Role for GitHub Actions to assume"
   value       = aws_iam_role.github_actions_ecr.arn
 }
+
+output "current_user_arn" {
+  description = "ARN of the current user"
+  value       = data.aws_caller_identity.current.arn
+}

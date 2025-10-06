@@ -8,6 +8,22 @@ module "eks" {
   vpc_id                         = var.vpc_id
   subnet_ids                     = var.private_subnet_ids
 
+  access_entries = {
+    admin = {
+      principal_arn = var.current_user_arn
+      type          = "STANDARD"
+
+      policy_associations = {
+        admin = {
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = {
+            type = "cluster"
+          }
+        }
+      }
+    }
+  }
+
   cluster_addons = {
     coredns = {
       most_recent = true

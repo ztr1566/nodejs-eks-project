@@ -25,11 +25,14 @@ module "network" {
   aws_region          = var.region
 }
 
+data "aws_caller_identity" "current" {}
+
 module "eks" {
   source             = "./modules/eks"
   cluster_name       = "${var.project_name}-cluster"
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
+  current_user_arn = data.aws_caller_identity.current.arn
 
   cluster_addons = {
     aws-ebs-csi-driver = {

@@ -17,3 +17,9 @@ output "cluster_arn" {
   description = "The ARN of the EKS cluster."
   value       = module.eks.cluster_arn
 }
+
+output "default_storage_class" {
+  description = "Name of the default storage class"
+  value       = "gp3-encrypted"
+  depends_on  = [null_resource.gp3_storage_class]
+}
